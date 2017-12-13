@@ -5,10 +5,8 @@
 
 from evdev import InputDevice, categorize, ecodes
 import uinput
-from subprocess import *
-import sys, os
 
-DISABLED = False
+
 CODE_LEFT = 272
 CODE_RIGHT = 273
 CODE_MID = 274
@@ -68,35 +66,9 @@ virtual_keyboard = uinput.Device([
     uinput.KEY_LEFTCTRL,
     uinput.KEY_LEFTSHIFT,
     uinput.KEY_LEFTALT,
-    uinput.KEY_ESCAPE,
-    uinput.KEY_SPACE,
     uinput.KEY_TAB,
-    uinput.KEY_A,
-    uinput.KEY_B,
-    uinput.KEY_C,
-    uinput.KEY_D,
-    uinput.KEY_E,
-    uinput.KEY_F,
-    uinput.KEY_G,
-    uinput.KEY_H,
-    uinput.KEY_I,
-    uinput.KEY_J,
-    uinput.KEY_K,
-    uinput.KEY_L,
-    uinput.KEY_M,
-    uinput.KEY_N,
-    uinput.KEY_O,
-    uinput.KEY_P,
-    uinput.KEY_Q,
-    uinput.KEY_R,
-    uinput.KEY_S,
-    uinput.KEY_T,
-    uinput.KEY_U,
-    uinput.KEY_V,
     uinput.KEY_W,
-    uinput.KEY_X,
-    uinput.KEY_Y,
-    uinput.KEY_Z,
+    uinput.KEY_Q,
     ])
 # virtual_keyboard.emit_click(uinput.KEY_H)
 # virtual_keyboard.emit(uinput.KEY_LEFTCTRL, 1)
@@ -120,14 +92,13 @@ only_button_right_click = False
 only_button_mid_click = False
 both_left_right_click = False
 
-current_window = ""
-
 for event in dev.read_loop():
     map_event = EVENT_NONE
     if event.code == CODE_LEFT:
         count_movement_times = 0
         only_button_right_click = False
         only_button_mid_click = False
+        virtual_mouse.emit(uinput.BTN_LEFT, event.value)
         if event.value == 1:
             button_left = True
             if button_right:
@@ -206,7 +177,7 @@ for event in dev.read_loop():
             else:
                 map_event = EVENT_SCROLL_DOWN
 
-    elif event.code == CODE_MOVE_X and DISABLED:
+    elif event.code == CODE_MOVE_X :
         count_movement_times += 1
         if count_movement_times > COUNT_MOVEMENT_LIMIT:
             only_button_left_click = False
@@ -215,10 +186,10 @@ for event in dev.read_loop():
             both_left_right_click = False
         if event.value != 0:
             virtual_mouse.emit(uinput.REL_X, event.value)
-            if button_left or button_right:
+            if button_right:
                 virtual_mouse.emit(uinput.REL_HWHEEL, -event.value)
 
-    elif event.code == CODE_MOVE_Y and DISABLED:
+    elif event.code == CODE_MOVE_Y :
         count_movement_times += 1
         if count_movement_times > COUNT_MOVEMENT_LIMIT:
             only_button_left_click = False
@@ -227,88 +198,50 @@ for event in dev.read_loop():
             both_left_right_click = False
         if event.value != 0:
             virtual_mouse.emit(uinput.REL_Y, event.value)
-            if button_left or button_right:
+            if button_right:
                 virtual_mouse.emit(uinput.REL_WHEEL, event.value)
 
     if map_event > 0:
-        if not current_window or map_event == EVENT_MID_CLICK:
-            bufsize = 1024
-            cmd_listwds = "ratpoison -c 'windows %c %s'|grep '*'"
-            run_listwds = Popen(cmd_listwds, shell=True, bufsize=bufsize, stdout=PIPE).stdout
-            current_window = run_listwds.read().split()[0]
+        print MAP_EVENT_TO_NAME[map_event]
 
-        # print MAP_EVENT_TO_NAME[map_event]
-        # print current_window
-        base_config = {
-            EVENT_LEFT_RIGHT_SCROLL_DOWN: ([uinput.KEY_LEFTCTRL, uinput.KEY_I, ],
-                                           [uinput.KEY_LEFTCTRL, uinput.KEY_I, ],),
+        # if map_event == EVENT_LEFT_CLICK:
+        #     virtual_mouse.emit(uinput.BTN_LEFT, 1)
+        #     virtual_mouse.emit(uinput.BTN_LEFT, 0)
 
-            EVENT_LEFT_RIGHT_SCROLL_UP: ([uinput.KEY_LEFTCTRL, uinput.KEY_I,],
-                                         (uinput.KEY_SPACE,),),
-        }
+        if map_event == EVENT_RIGHT_CLICK:
+            virtual_mouse.emit(uinput.BTN_RIGHT, 1)
+            virtual_mouse.emit(uinput.BTN_RIGHT, 0)
 
-        map_config = {
-            "Terminator": {
-                EVENT_LEFT_CLICK: (uinput.KEY_L,),
-                EVENT_RIGHT_CLICK: (uinput.KEY_R,),
-                EVENT_MID_CLICK: (uinput.KEY_M,),
-                EVENT_SCROLL_UP: [uinput.KEY_LEFTCTRL,
-                                  uinput.KEY_A,],
-                EVENT_SCROLL_DOWN: [uinput.KEY_LEFTCTRL,
-                                    uinput.KEY_F,],
-                EVENT_LEFT_RIGHT_DOWN: (uinput.KEY_B,),
-                EVENT_LEFT_RIGHT_UP: [uinput.KEY_LEFTCTRL,
-                                      uinput.KEY_B,],
-                EVENT_RIGHT_SCROLL_UP: (uinput.KEY_H,),
-                EVENT_RIGHT_SCROLL_DOWN: (uinput.KEY_J,),
-                EVENT_LEFT_SCROLL_UP: (uinput.KEY_K,),
-                EVENT_LEFT_SCROLL_DOWN: (uinput.KEY_L,),
-            },
+        elif map_event == EVENT_MID_CLICK:
+            virtual_mouse.emit(uinput.BTN_MIDDLE, 1)
+            virtual_mouse.emit(uinput.BTN_MIDDLE, 0)
 
-            "Chromium": {
-                EVENT_LEFT_CLICK: ((uinput.KEY_G,),
-                                   (uinput.KEY_G,),),
+        elif map_event == EVENT_SCROLL_UP:
+            virtual_keyboard.emit_combo([
+                uinput.KEY_LEFTCTRL,
+                uinput.KEY_LEFTSHIFT,
+                uinput.KEY_TAB,
+            ])
+        elif map_event == EVENT_SCROLL_DOWN:
+            virtual_keyboard.emit_combo([
+                uinput.KEY_LEFTCTRL,
+                uinput.KEY_TAB,
+            ])
 
-                EVENT_RIGHT_CLICK: ([uinput.KEY_LEFTSHIFT, uinput.KEY_G,],
-                                    [uinput.KEY_LEFTSHIFT, uinput.KEY_G,],),
+        elif map_event == EVENT_LEFT_RIGHT_UP:
+            virtual_keyboard.emit_combo([
+                uinput.KEY_LEFTCTRL,
+                uinput.KEY_W,
+            ])
 
-                EVENT_MID_CLICK: (uinput.KEY_T,),
+        elif map_event == EVENT_RIGHT_SCROLL_UP:
+            pass
+        elif map_event == EVENT_RIGHT_SCROLL_DOWN:
+            pass
 
-                EVENT_SCROLL_UP: [ # uinput.KEY_LEFTCTRL,
-                                  uinput.KEY_K,],
-
-                EVENT_SCROLL_DOWN: [ # uinput.KEY_LEFTCTRL,
-                                    uinput.KEY_J,],
-
-                EVENT_LEFT_RIGHT_DOWN: (uinput.KEY_B,),
-
-                EVENT_LEFT_RIGHT_UP: [uinput.KEY_LEFTCTRL,
-                                      uinput.KEY_B,],
-
-                EVENT_RIGHT_SCROLL_UP: (uinput.KEY_H,),
-
-                EVENT_RIGHT_SCROLL_DOWN: (uinput.KEY_J,),
-
-                EVENT_LEFT_SCROLL_UP: (uinput.KEY_K,),
-
-                EVENT_LEFT_SCROLL_DOWN: (uinput.KEY_L,),
-            },
-        }
-
-        if map_event in base_config:
-            keys = base_config[map_event]
-        else:
-            keys = map_config.get(current_window, {}).get(map_event, [])
-        if len(keys) > 1:
-            if type(keys) == tuple:
-                for key in keys:
-                    if len(key) > 1:
-                        virtual_keyboard.emit_combo(key)
-                    else:
-                        virtual_keyboard.emit_click(key[0])
-            else:
-                virtual_keyboard.emit_combo(keys)
-        elif len(keys) == 1:
-            virtual_keyboard.emit_click(keys[0])
+        elif map_event == EVENT_LEFT_SCROLL_UP:
+            pass
+        elif map_event == EVENT_LEFT_SCROLL_DOWN:
+            pass
 
 dev.ungrab()
