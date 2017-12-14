@@ -68,9 +68,14 @@ virtual_keyboard = uinput.Device([
     uinput.KEY_LEFTCTRL,
     uinput.KEY_LEFTSHIFT,
     uinput.KEY_LEFTALT,
-    uinput.KEY_ESCAPE,
+    uinput.KEY_ESC,
+    uinput.KEY_ENTER,
     uinput.KEY_SPACE,
     uinput.KEY_TAB,
+    uinput.KEY_F2,
+    uinput.KEY_F4,
+    uinput.KEY_1,
+    uinput.KEY_2,
     uinput.KEY_A,
     uinput.KEY_B,
     uinput.KEY_C,
@@ -231,20 +236,17 @@ for event in dev.read_loop():
                 virtual_mouse.emit(uinput.REL_WHEEL, event.value)
 
     if map_event > 0:
-        if not current_window or map_event == EVENT_MID_CLICK:
-            bufsize = 1024
-            cmd_listwds = "ratpoison -c 'windows %c %s'|grep '*'"
-            run_listwds = Popen(cmd_listwds, shell=True, bufsize=bufsize, stdout=PIPE).stdout
-            current_window = run_listwds.read().split()[0]
+        # if not current_window or map_event == EVENT_MID_CLICK:
+        bufsize = 1024
+        cmd_listwds = "ratpoison -c 'windows %c %s'|grep '*'"
+        run_listwds = Popen(cmd_listwds, shell=True, bufsize=bufsize, stdout=PIPE).stdout
+        current_window = run_listwds.read().split()[0]
 
         # print MAP_EVENT_TO_NAME[map_event]
         # print current_window
         base_config = {
-            EVENT_LEFT_RIGHT_SCROLL_DOWN: ([uinput.KEY_LEFTCTRL, uinput.KEY_I, ],
-                                           [uinput.KEY_LEFTCTRL, uinput.KEY_I, ],),
-
-            EVENT_LEFT_RIGHT_SCROLL_UP: ([uinput.KEY_LEFTCTRL, uinput.KEY_I,],
-                                         (uinput.KEY_SPACE,),),
+            EVENT_LEFT_RIGHT_SCROLL_DOWN: (uinput.KEY_F4,),
+            EVENT_LEFT_RIGHT_SCROLL_UP: (uinput.KEY_F2,),
         }
 
         map_config = {
@@ -264,8 +266,25 @@ for event in dev.read_loop():
                 EVENT_LEFT_SCROLL_UP: (uinput.KEY_K,),
                 EVENT_LEFT_SCROLL_DOWN: (uinput.KEY_L,),
             },
+            "main.py": {
+                EVENT_LEFT_CLICK: (uinput.KEY_ENTER,),
+                EVENT_RIGHT_CLICK: (uinput.KEY_ESC,),
+                EVENT_MID_CLICK: (uinput.KEY_SPACE,),
+                EVENT_SCROLL_UP: (uinput.KEY_H,),
+                EVENT_SCROLL_DOWN: (uinput.KEY_L,),
+                # EVENT_LEFT_RIGHT_DOWN: (uinput.KEY_SPACE,),
+                # EVENT_LEFT_RIGHT_UP: (uinput.KEY_SPACE,),
+                EVENT_RIGHT_SCROLL_UP: (uinput.KEY_K,),
+                EVENT_RIGHT_SCROLL_DOWN: (uinput.KEY_J,),
+                EVENT_LEFT_SCROLL_UP: (uinput.KEY_2,),
+                EVENT_LEFT_SCROLL_DOWN: (uinput.KEY_1,),
+            },
 
             "Chromium": {
+                EVENT_LEFT_CLICK: (uinput.KEY_S,),
+                EVENT_RIGHT_CLICK: (uinput.KEY_SPACE,),
+            },
+            "Chromium.def": {
                 EVENT_LEFT_CLICK: ((uinput.KEY_G,),
                                    (uinput.KEY_G,),),
 
@@ -283,7 +302,7 @@ for event in dev.read_loop():
                 EVENT_LEFT_RIGHT_DOWN: (uinput.KEY_B,),
 
                 EVENT_LEFT_RIGHT_UP: [uinput.KEY_LEFTCTRL,
-                                      uinput.KEY_B,],
+                                      uinput.KEY_TAB,],
 
                 EVENT_RIGHT_SCROLL_UP: (uinput.KEY_H,),
 
